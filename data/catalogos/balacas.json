@@ -1,0 +1,15 @@
+[
+  {
+    "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "nombre": "moños",
+    "precioUnitarioCOP": 8500,
+    "precioUnitarioUSD": 2,
+    "materiales": "cinta de satin, hilo, cinta encaje",
+    "descripcion": "moños creados para ocaciones especiales de varios colores",
+    "imagenes": [
+      "https://drive.google.com/uc?export=view&id=10atG-Pwne0vXSzg7otcZqUaXsJOv1t81"
+    ],
+    "descuentoPorCantidad": 0.3,
+    "cantidadMinimaParaDescuento": 10
+  }
+]

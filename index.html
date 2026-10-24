@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naranja Mandarina - Accesorios y Ropa para Dama</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase SDK v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+</head>
+<body>
+    <!-- Botón flotante de WhatsApp -->
+    <a href="https://wa.me/573152791288" class="whatsapp-float" id="whatsapp-float" target="_blank" aria-label="Contactar por WhatsApp">
+        <img src="images/logo1/wtps.png" alt="WhatsApp">
+    </a>
+
+    <div class="min-h-screen bg-white">
+        <!-- Header Principal -->
+        <header class="bg-orange-500 text-white shadow-md sticky top-0 z-50">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="index.html" class="flex items-center text-white" style="text-decoration:none;">
+                    <img src="images/logo1/logo.png" alt="Logo Naranja Mandarina" class="h-8 w-auto mr-3">
+                    <h1 class="title-elegante m-0">Naranja Mandarina</h1>
+                </a>
+
+                <!-- Navegación Escritorio -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="balacas.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Balacas</a>
+                    <a href="accesorios.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Accesorios</a>
+                    <a href="blusas.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Blusas</a>
+                    <a href="faldas.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Faldas</a>
+                    <a href="vestidos.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Vestidos</a>
+                    <a href="banos.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Trajes de Baño</a>
+                    <a href="admin.html" id="admin-link" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 rounded-lg text-white font-medium text-sm transition-colors" style="text-decoration:none;">Admin</a>
+                </nav>
+
+                <!-- Botón Hamburguesa Móvil -->
+                <div class="flex items-center md:hidden space-x-2">
+                    <button id="menu-toggle" class="hamburger" aria-label="Abrir Menú de Navegación">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menú Desplegable Móvil -->
+            <div id="mobile-menu" class="hidden px-4 py-3 border-t border-orange-400 md:hidden">
+                <ul class="space-y-1">
+                    <li><a href="index.html">🏠 Inicio</a></li>
+                    <li><a href="balacas.html">🎀 Diademas y Balacas</a></li>
+                    <li><a href="accesorios.html">✨ Cintillos y Accesorios</a></li>
+                    <li><a href="blusas.html">👚 Blusas para Dama</a></li>
+                    <li><a href="faldas.html">👗 Faldas para Dama</a></li>
+                    <li><a href="vestidos.html">💃 Vestidos de Fiesta</a></li>
+                    <li><a href="banos.html">👙 Trajes de Baño</a></li>
+                    <li class="border-t border-orange-400 mt-2 pt-2"><a href="admin.html">🔐 Acceso Administrador</a></li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Hero Section con historia artesanal -->
+        <section class="bg-gradient-to-r from-orange-400 to-orange-500 py-16 text-black">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-4xl font-bold mb-4 text-white">Accesorios que iluminan tu estilo</h2>
+                <p class="text-xl mb-8 text-white opacity-95">Descubre nuestra colección exclusiva de accesorios artesanales y moda femenina</p>
+                
+                <!-- Recuadro para historia con GIF de fondo -->
+                <div class="leyenda-box mx-auto max-w-4xl p-6 mb-4">
+                    <p class="historia-text">
+                        Naranja Mandarina nació del amor de una madre que soñaba con moños perfectos para su pequeña princesa. Con solo $2.000 prestados, empecé a crearlos a mano... y cuando mi hija salía a la calle, ¡todos volteaban a admirar! Arriesgué ofreciéndolos en almacenes de Pasto: primero media docena, luego una docena, ¡y hoy entregamos cantidades que superan cualquier sueño! Llevamos 17 años creciendo con la bendición de Dios. Cada moño y accesorio es hecho a mano con materiales premium, garantizando durabilidad, elegancia y belleza eterna. ¡Haz brillar a tu princesa con la magia de lo artesanal! 💖✨
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid de Categorías -->
+        <section class="py-12 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-4 text-gray-800">Nuestras Colecciones</h2>
+                <p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">Selecciona una categoría para explorar productos disponibles con descuento especial a partir de 10 unidades.</p>
+                <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Categorías inyectadas por script.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-12">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-orange-400">Naranja Mandarina</h3>
+                        <p class="text-gray-300 mb-3">Accesorios femeninos artesanales, moños, balacas y confecciones de calidad para realzar tu belleza.</p>
+                        <p class="text-sm text-gray-400">17 años llenando de brillo y elegancia tus momentos especiales.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-orange-400">Contacto Directo</h3>
+                        <p class="text-gray-300 mb-2"><strong>Email:</strong> jennytutalcha83@gmail.com</p>
+                        <p class="text-gray-300 mb-2"><strong>WhatsApp:</strong> +57 315 279 1288</p>
+                        <p class="text-gray-300"><strong>Ubicación:</strong> Cra 9 # 36-67 El Carmen, Palmira (Valle)</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-orange-400">Síguenos</h3>
+                        <div class="flex space-x-4 mb-4">
+                            <a href="https://www.facebook.com" target="_blank" rel="noopener" class="text-gray-300 hover:text-orange-400 transition-colors" aria-label="Facebook">
+                                <img src="images/logo1/imgf1.png" alt="Facebook" class="w-8 h-8 rounded">
+                            </a>
+                            <a href="https://www.instagram.com" target="_blank" rel="noopener" class="text-gray-300 hover:text-orange-400 transition-colors" aria-label="Instagram">
+                                <img src="images/logo1/imgi2.png" alt="Instagram" class="w-8 h-8 rounded">
+                            </a>
+                            <a href="https://wa.me/573152791288" target="_blank" rel="noopener" class="text-gray-300 hover:text-orange-400 transition-colors" aria-label="WhatsApp">
+                                <img src="images/logo1/imgw3.png" alt="WhatsApp" class="w-8 h-8 rounded">
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-400">Envíos a todo el país. Pedidos por mayor y detal.</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                    <p>© 2024 Naranja Mandarina. Todos los derechos reservados.</p>
+                    <div class="mt-2 flex items-center justify-center gap-2">
+                        <span>Diseñado y Desarrollado por</span>
+                        <a href="https://instagram.com/mcdigitalsolutions" target="_blank" rel="noopener" class="text-orange-400 hover:underline font-semibold">
+                            @mcdigitalsolutions
+                        </a>
+                        <span>|</span>
+                        <a href="https://wa.me/573226406370" target="_blank" rel="noopener" class="text-orange-400 hover:underline">
+                            WhatsApp Soporte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="whatsapp-float.js"></script>
+</body>
+</html>

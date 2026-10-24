@@ -1,0 +1,19 @@
+{
+  "name": "naranja-mandarina",
+  "version": "1.0.0",
+  "description": "Naranja Mandarina - Tienda y Catálogo Web de Accesorios y Confecciones",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "accesorios",
+    "balacas",
+    "monos",
+    "moda",
+    "supabase",
+    "tienda-online"
+  ],
+  "author": "MC Digital Solutions",
+  "license": "ISC"
+}

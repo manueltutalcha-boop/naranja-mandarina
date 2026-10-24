@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faldas para Dama - Naranja Mandarina</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase SDK v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+</head>
+<body>
+    <!-- Modal para imagen grande -->
+    <div id="image-modal" class="hidden">
+        <button id="close-modal" aria-label="Cerrar">✕</button>
+        <button id="prev-image" class="modal-nav-btn" aria-label="Anterior">◀</button>
+        <img id="modal-image" src="" alt="Imagen ampliada">
+        <button id="next-image" class="modal-nav-btn" aria-label="Siguiente">▶</button>
+    </div>
+
+    <!-- Botón flotante de WhatsApp -->
+    <a href="https://wa.me/573152791288" class="whatsapp-float" id="whatsapp-float" target="_blank" aria-label="Contactar por WhatsApp">
+        <img src="images/logo1/wtps.png" alt="WhatsApp">
+    </a>
+
+    <div class="min-h-screen bg-white">
+        <!-- Header Principal -->
+        <header class="bg-orange-500 text-white shadow-md sticky top-0 z-50">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="index.html" class="flex items-center text-white" style="text-decoration:none;">
+                    <img src="images/logo1/logo.png" alt="Logo de Naranja Mandarina" class="h-8 w-auto mr-3">
+                    <h1 class="title-elegante m-0">Naranja Mandarina</h1>
+                </a>
+                
+                <!-- Navegación Escritorio -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="index.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Inicio</a>
+                    <a href="balacas.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Balacas</a>
+                    <a href="accesorios.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Accesorios</a>
+                    <a href="blusas.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Blusas</a>
+                    <a href="faldas.html" class="text-orange-200 font-semibold" style="text-decoration:none;">Faldas</a>
+                    <a href="vestidos.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Vestidos</a>
+                    <a href="banos.html" class="text-white hover:text-orange-200 font-medium transition-colors" style="text-decoration:none;">Trajes de Baño</a>
+                    <a href="admin.html" id="admin-link" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 rounded-lg text-white font-medium text-sm transition-colors" style="text-decoration:none;">Admin</a>
+                </nav>
+
+                <!-- Botón Hamburguesa Móvil -->
+                <div class="flex items-center md:hidden space-x-2">
+                    <button id="menu-toggle" class="hamburger" aria-label="Abrir Menú de Navegación">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menú Desplegable Móvil -->
+            <div id="mobile-menu" class="hidden px-4 py-3 border-t border-orange-400 md:hidden">
+                <ul class="space-y-1">
+                    <li><a href="index.html">🏠 Inicio</a></li>
+                    <li><a href="balacas.html">🎀 Diademas y Balacas</a></li>
+                    <li><a href="accesorios.html">✨ Cintillos y Accesorios</a></li>
+                    <li><a href="blusas.html">👚 Blusas para Dama</a></li>
+                    <li><a href="faldas.html">👗 Faldas para Dama</a></li>
+                    <li><a href="vestidos.html">💃 Vestidos de Fiesta</a></li>
+                    <li><a href="banos.html">👙 Trajes de Baño</a></li>
+                    <li class="border-t border-orange-400 mt-2 pt-2"><a href="admin.html">🔐 Acceso Administrador</a></li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Hero de Categoría -->
+        <section class="py-8 bg-orange-50 text-center">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold mb-2 text-gray-800">Faldas para Dama</h2>
+                <p class="text-lg text-gray-600">Faldas largas, midi y cortas con caídas perfectas y telas de alta calidad. <strong>30% de descuento a partir de 10 unidades.</strong></p>
+            </div>
+        </section>
+
+        <!-- Filtros Avanzados -->
+        <section class="py-6">
+            <div class="container mx-auto px-4">
+                <div class="filter-card">
+                    <div class="filter-header">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        <h3 class="filter-title">Filtrar Colección</h3>
+                    </div>
+                    
+                    <div class="filter-grid">
+                        <div class="filter-group">
+                            <label class="filter-label" for="filter-color">Color</label>
+                            <select id="filter-color" class="filter-input">
+                                <option value="all">Todos los colores</option>
+                                <option value="negro">Negro</option>
+                                <option value="blanco">Blanco</option>
+                                <option value="rosa">Rosa</option>
+                                <option value="verde">Verde</option>
+                                <option value="azul">Azul</option>
+                                <option value="rojo">Rojo</option>
+                                <option value="multicolor">Estampado / Multicolor</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">Rango de Precio (COP)</label>
+                            <div class="price-inputs">
+                                <input type="number" id="price-min" placeholder="Mín" class="filter-input price-input" min="0">
+                                <span class="price-separator">—</span>
+                                <input type="number" id="price-max" placeholder="Máx" class="filter-input price-input" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label" for="sort-by">Ordenar por</label>
+                            <select id="sort-by" class="filter-input">
+                                <option value="">Por defecto</option>
+                                <option value="price-asc">💰 Menor precio</option>
+                                <option value="price-desc">💰 Mayor precio</option>
+                                <option value="name-asc">Nombre (A → Z)</option>
+                                <option value="name-desc">Nombre (Z → A)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-actions">
+                            <button id="apply-filters" class="btn-apply">Aplicar</button>
+                            <button id="clear-filters" class="btn-clear">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid de productos -->
+        <section class="py-8">
+            <div class="container mx-auto px-4">
+                <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Productos inyectados desde Supabase vía faldas.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-12 mt-12">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-orange-400">Naranja Mandarina</h3>
+                        <p class="text-gray-300 mb-3">Accesorios femeninos artesanales, moños, balacas y confecciones de calidad para realzar tu belleza.</p>
+                        <p class="text-sm text-gray-400">17 años llenando de brillo y elegancia tus momentos especiales.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-orange-400">Contacto Directo</h3>
+                        <p class="text-gray-300 mb-2"><strong>Email:</strong> jennytutalcha83@gmail.com</p>
+                        <p class="text-gray-300 mb-2"><strong>WhatsApp:</strong> +57 315 279 1288</p>
+                        <p class="text-gray-300"><strong>Ubicación:</strong> Cra 9 # 36-67 El Carmen, Palmira (Valle)</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-orange-400">Síguenos</h3>
+                        <div class="flex space-x-4 mb-4">
+                            <a href="https://www.facebook.com" target="_blank" rel="noopener" class="text-gray-300 hover:text-orange-400 transition-colors" aria-label="Facebook">
+                                <img src="images/logo1/imgf1.png" alt="Facebook" class="w-8 h-8 rounded">
+                            </a>
+                            <a href="https://www.instagram.com" target="_blank" rel="noopener" class="text-gray-300 hover:text-orange-400 transition-colors" aria-label="Instagram">
+                                <img src="images/logo1/imgi2.png" alt="Instagram" class="w-8 h-8 rounded">
+                            </a>
+                            <a href="https://wa.me/573152791288" target="_blank" rel="noopener" class="text-gray-300 hover:text-orange-400 transition-colors" aria-label="WhatsApp">
+                                <img src="images/logo1/imgw3.png" alt="WhatsApp" class="w-8 h-8 rounded">
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-400">Envíos a todo el país. Pedidos por mayor y detal.</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                    <p>© 2024 Naranja Mandarina. Todos los derechos reservados.</p>
+                    <div class="mt-2 flex items-center justify-center gap-2">
+                        <span>Diseñado y Desarrollado por</span>
+                        <a href="https://instagram.com/mcdigitalsolutions" target="_blank" rel="noopener" class="text-orange-400 hover:underline font-semibold">
+                            @mcdigitalsolutions
+                        </a>
+                        <span>|</span>
+                        <a href="https://wa.me/573226406370" target="_blank" rel="noopener" class="text-orange-400 hover:underline">
+                            WhatsApp Soporte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="catalog-common.js"></script>
+    <script src="faldas.js"></script>
+    <script src="whatsapp-float.js"></script>
+</body>
+</html>

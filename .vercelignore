@@ -1,0 +1,6 @@
+node_modules
+.env
+.env.*
+.git
+.github
+supabase_setup.sql
