@@ -117,7 +117,8 @@ async function fetchCategoryProducts(categoria) {
 }
 
 /**
- * Obtiene todos los productos para el panel de administración (incluyendo pausados)
+ * Obtiene todos los productos para el panel de administración (incluyendo pausados).
+ * Si la base de datos está vacía, devuelve el catálogo semilla inicial.
  */
 async function fetchAllAdminProducts() {
     const client = getSupabaseClient();
@@ -128,68 +129,113 @@ async function fetchAllAdminProducts() {
         .select('*')
         .order('creado_en', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
+    if (error) {
+        console.error('❌ [Supabase] Error al consultar admin productos:', error);
+        throw error;
+    }
+
+    if (data && data.length > 0) {
+        return data;
+    }
+
+    // Fallback: si aún no hay productos en la BD, devolver el catálogo semilla
+    console.log('ℹ️ [Supabase] Sin productos en BD aún. Mostrando catálogo semilla.');
+    const categories = ['balacas', 'accesorios', 'blusas', 'faldas', 'vestidos', 'banos'];
+    const initialList = [];
+    categories.forEach(cat => {
+        const fallbacks = getFallbackProducts(cat);
+        if (Array.isArray(fallbacks)) {
+            initialList.push(...fallbacks);
+        }
+    });
+    return initialList;
 }
 
 /**
  * Crea un nuevo producto en la tabla 'productos'
+ * Envía ÚNICAMENTE las columnas reales y evita .single() para prevenir errores de coerción
  */
 async function createProduct(productData) {
     const client = getSupabaseClient();
     if (!client) throw new Error('Cliente Supabase no disponible.');
 
     const payload = {
-        categoria: productData.categoria,
-        nombre: productData.nombre,
-        precio: Number(productData.precio) || 0,
-        descripcion: productData.descripcion || '',
-        materiales: productData.materiales || '',
-        garantia: productData.garantia || 'Garantía por defectos de confección y costuras.',
-        colores: Array.isArray(productData.colores) ? productData.colores : ['multicolor'],
+        categoria: String(productData.categoria || 'balacas').trim().toLowerCase(),
+        nombre: String(productData.nombre || '').trim(),
+        precio: Math.max(0, Number(productData.precio) || 0),
+        descripcion: String(productData.descripcion || '').trim(),
+        materiales: String(productData.materiales || '').trim(),
+        garantia: String(productData.garantia || 'Garantía por defectos de confección y costuras.').trim(),
+        colores: Array.isArray(productData.colores) && productData.colores.length ? productData.colores : ['multicolor'],
         imagenes: Array.isArray(productData.imagenes) ? productData.imagenes : [],
         disponible: productData.disponible !== undefined ? Boolean(productData.disponible) : true
     };
 
+    // Asegurarse de NUNCA enviar un id vacío ni IDs que no sean UUID para que PostgreSQL genere gen_random_uuid()
+    if (productData.id && typeof productData.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productData.id.trim())) {
+        payload.id = productData.id.trim();
+    }
+
     const { data, error } = await client
         .from('productos')
         .insert([payload])
-        .select()
-        .single();
+        .select();
 
-    if (error) throw error;
-    return data;
+    if (error) {
+        console.error('❌ [Supabase] Error al insertar producto:', error);
+        throw error;
+    }
+
+    return (Array.isArray(data) && data.length > 0) ? data[0] : payload;
 }
 
 /**
- * Actualiza un producto existente
+ * Actualiza un producto existente en Supabase.
+ * Usa .maybeSingle() en lugar de .single(). Si la fila no existe (ej. era producto semilla),
+ * lo inserta automáticamente como producto nuevo para no perder lo que se escribió.
  */
 async function updateProduct(id, productData) {
     const client = getSupabaseClient();
     if (!client) throw new Error('Cliente Supabase no disponible.');
 
     const payload = {
-        categoria: productData.categoria,
-        nombre: productData.nombre,
-        precio: Number(productData.precio) || 0,
-        descripcion: productData.descripcion || '',
-        materiales: productData.materiales || '',
-        garantia: productData.garantia || 'Garantía por defectos de confección y costuras.',
-        colores: Array.isArray(productData.colores) ? productData.colores : ['multicolor'],
+        categoria: String(productData.categoria || 'balacas').trim().toLowerCase(),
+        nombre: String(productData.nombre || '').trim(),
+        precio: Math.max(0, Number(productData.precio) || 0),
+        descripcion: String(productData.descripcion || '').trim(),
+        materiales: String(productData.materiales || '').trim(),
+        garantia: String(productData.garantia || 'Garantía por defectos de confección y costuras.').trim(),
+        colores: Array.isArray(productData.colores) && productData.colores.length ? productData.colores : ['multicolor'],
         imagenes: Array.isArray(productData.imagenes) ? productData.imagenes : [],
         disponible: Boolean(productData.disponible),
         actualizado_en: new Date().toISOString()
     };
 
-    const { data, error } = await client
-        .from('productos')
-        .update(payload)
-        .eq('id', id)
-        .select()
-        .single();
+    const cleanId = id ? String(id).trim() : '';
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
 
-    if (error) throw error;
-    return data;
+    if (isUUID) {
+        try {
+            const { data, error } = await client
+                .from('productos')
+                .update(payload)
+                .eq('id', cleanId)
+                .select()
+                .maybeSingle();
+
+            if (error) {
+                console.warn('⚠️ [Supabase] Error en update, reintentando como inserción:', error.message);
+            } else if (data) {
+                return data;
+            }
+        } catch (updateErr) {
+            console.warn('⚠️ [Supabase] Excepción en update:', updateErr);
+        }
+    }
+
+    // Si el ID era de un producto local/semilla o no existía en la BD, lo insertamos como nuevo
+    console.log('ℹ️ [Supabase] ID no encontrado en BD. Creando automáticamente como nuevo producto.');
+    return await createProduct(productData);
 }
 
 /**
@@ -199,16 +245,24 @@ async function toggleProductAvailability(id, currentStatus) {
     const client = getSupabaseClient();
     if (!client) throw new Error('Cliente Supabase no disponible.');
 
-    const newStatus = !currentStatus;
-    const { data, error } = await client
-        .from('productos')
-        .update({ disponible: newStatus, actualizado_en: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
+    const cleanId = id ? String(id).trim() : '';
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
 
-    if (error) throw error;
-    return data;
+    const newStatus = !currentStatus;
+
+    if (isUUID) {
+        const { data, error } = await client
+            .from('productos')
+            .update({ disponible: newStatus, actualizado_en: new Date().toISOString() })
+            .eq('id', cleanId)
+            .select()
+            .maybeSingle();
+
+        if (error) throw error;
+        if (data) return data;
+    }
+
+    return { id: cleanId, disponible: newStatus };
 }
 
 /**
@@ -218,10 +272,17 @@ async function deleteProduct(id) {
     const client = getSupabaseClient();
     if (!client) throw new Error('Cliente Supabase no disponible.');
 
+    const cleanId = id ? String(id).trim() : '';
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+
+    if (!isUUID) {
+        return true;
+    }
+
     const { error } = await client
         .from('productos')
         .delete()
-        .eq('id', id);
+        .eq('id', cleanId);
 
     if (error) throw error;
     return true;

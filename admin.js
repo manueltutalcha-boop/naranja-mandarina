@@ -399,7 +399,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const isEditing = Boolean(editProductId.value);
+            const currentId = editProductId.value ? editProductId.value.trim() : '';
+            const isEditing = Boolean(currentId);
             const nombre = prodNombre.value.trim();
             const categoria = prodCategoria.value;
             const precio = parseInt(prodPrecio.value, 10);
@@ -428,6 +429,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnSaveProduct.disabled = true;
             btnSaveProduct.textContent = isEditing ? 'Guardando cambios... ⏳' : 'Subiendo producto a la tienda... ⏳';
 
+            // ÚNICAMENTE columnas reales de la tabla public.productos
             const payload = {
                 categoria,
                 nombre,
@@ -442,8 +444,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 if (isEditing) {
-                    await window.NaranjaMandarinaSupabase.updateProduct(editProductId.value, payload);
-                    showAlert(`¡Producto "${nombre}" actualizado correctamente!`, 'success');
+                    await window.NaranjaMandarinaSupabase.updateProduct(currentId, payload);
+                    showAlert(`¡Producto "${nombre}" guardado y actualizado correctamente!`, 'success');
                 } else {
                     await window.NaranjaMandarinaSupabase.createProduct(payload);
                     showAlert(`¡Producto "${nombre}" publicado exitosamente en la tienda!`, 'success');
@@ -466,9 +468,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         productForm.reset();
         editProductId.value = '';
         currentUploadedImages = [];
-        prodGarantia.value = 'Garantía de confección artesanal y costuras por 30 días.';
+        prodGarantia.value = 'Garantía por defectos de confección y costuras.';
         prodDisponible.checked = true;
-        formHeading.innerHTML = '<span>➕</span> Nuevo Producto';
+        formHeading.textContent = '';
+        const addIcon = document.createElement('span');
+        addIcon.textContent = '➕ ';
+        formHeading.appendChild(addIcon);
+        formHeading.appendChild(document.createTextNode('Nuevo Producto'));
         btnSaveProduct.textContent = '💾 Guardar Producto en la Tienda';
         btnCancelEdit.style.display = 'none';
         renderPhotoPreviews();
