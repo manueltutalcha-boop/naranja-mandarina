@@ -41,3 +41,5 @@ monitor.js
 validate-pre-deploy.js
 setup-admin-mode.ps1
 deploy.ps1
+
+.vercel
