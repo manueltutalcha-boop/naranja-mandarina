@@ -15,12 +15,24 @@
         return Number(n || 0).toLocaleString('es-CO');
     }
 
-    function esc(s){
-        return String(s || '')
+    function escapeHTML(s){
+        if (s === null || s === undefined) return '';
+        return String(s)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    const esc = escapeHTML;
+
+    function sanitizeImageUrl(url){
+        if (!url || typeof url !== 'string') return 'images/catalogo/placeholder.jpg';
+        const trimmed = url.trim();
+        if (/^(https?:\/\/|\/|\.\/|images\/|data:image\/|blob:)/i.test(trimmed)) {
+            return esc(trimmed);
+        }
+        return 'images/catalogo/placeholder.jpg';
     }
 
     function getBasePrice(prod){
@@ -180,23 +192,23 @@
                     ${images.length > 1 ? `
                     <div class="thumbs-container flex justify-center space-x-2 p-2 bg-white rounded-t-lg">
                         ${images.map((img, idx) => `
-                            <img src="${esc(img)}" 
+                            <img src="${sanitizeImageUrl(img)}" 
                                  alt="Vista ${idx+1}" 
                                  class="thumb w-12 h-12 object-cover rounded cursor-pointer border-2 ${idx === 0 ? 'border-orange-500' : 'border-gray-200'} hover:border-orange-500 transition-all duration-200" 
                                  data-index="${idx}" 
-                                 data-id="${prod.id}"
+                                 data-id="${esc(prod.id)}"
                                  loading="lazy"
                                  onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
                         `).join('')}
                     </div>` : ''}
                     <div class="main-image-container product-image-wrapper">
-                        <img src="${esc(mainImg)}" 
+                        <img src="${sanitizeImageUrl(mainImg)}" 
                              alt="${esc(prodName)}" 
                              class="main-image w-full h-64 object-cover transition-all duration-300 mx-auto block" 
-                             data-id="${prod.id}"
+                             data-id="${esc(prod.id)}"
                              loading="lazy"
                              onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
-                        <button class="view-large-btn" type="button" data-id="${prod.id}" data-idx="0">
+                        <button class="view-large-btn" type="button" data-id="${esc(prod.id)}" data-idx="0">
                             🔍 Ver en grande
                         </button>
                     </div>
@@ -219,7 +231,7 @@
                     </p>
 
                     <button class="w-full whatsapp-btn bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 font-semibold transition-colors flex items-center justify-center gap-2" 
-                            data-id="${prod.id}" 
+                            data-id="${esc(prod.id)}" 
                             data-name="${esc(prodName)}" 
                             data-qty="1">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

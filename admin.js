@@ -71,11 +71,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         return Number(num || 0).toLocaleString('es-CO');
     }
 
-    // Helper: Mostrar alertas
+    // Funciones de sanitización contra XSS
+    const escapeHTML = window.escapeHTML || function(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+
+    const sanitizeImageUrl = window.sanitizeImageUrl || function(url) {
+        if (!url || typeof url !== 'string') return 'images/catalogo/placeholder.jpg';
+        const trimmed = url.trim();
+        if (/^(https?:\/\/|\/|\.\/|images\/|data:image\/|blob:)/i.test(trimmed)) {
+            return escapeHTML(trimmed);
+        }
+        return 'images/catalogo/placeholder.jpg';
+    };
+
+    // Helper: Mostrar alertas seguro (sin innerHTML para mensajes dinámicos)
     function showAlert(message, type = 'success', duration = 4000) {
         if (!globalAlert) return;
         globalAlert.className = `admin-alert ${type}`;
-        globalAlert.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> <span>${message}</span>`;
+        globalAlert.textContent = '';
+        
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = type === 'success' ? '✅' : '❌';
+        const msgSpan = document.createElement('span');
+        msgSpan.textContent = ` ${message}`;
+        
+        globalAlert.appendChild(iconSpan);
+        globalAlert.appendChild(msgSpan);
         globalAlert.style.display = 'flex';
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -345,7 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const thumb = document.createElement('div');
             thumb.className = 'preview-thumb';
             thumb.innerHTML = `
-                <img src="${imgUrl}" alt="Foto ${index + 1}" onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
+                <img src="${sanitizeImageUrl(imgUrl)}" alt="Foto ${index + 1}" onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
                 ${index === 0 ? '<span class="primary-badge">Principal</span>' : ''}
                 <button type="button" class="btn-remove-thumb" data-index="${index}" title="Quitar foto">✕</button>
             `;
@@ -541,27 +569,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const mainImg = (prod.imagenes && prod.imagenes[0]) || 'images/catalogo/placeholder.jpg';
             const catLabel = categoryNames[prod.categoria] || prod.categoria;
+            const safeName = escapeHTML(prod.nombre || '');
+            const safeCat = escapeHTML(catLabel);
+            const safeId = escapeHTML(prod.id);
+            const safeImg = sanitizeImageUrl(mainImg);
 
             card.innerHTML = `
                 <div class="item-thumb-wrapper">
-                    <img src="${mainImg}" alt="${prod.nombre}" loading="lazy" onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
+                    <img src="${safeImg}" alt="${safeName}" loading="lazy" onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
                 </div>
                 <div class="item-info">
-                    <span class="item-category-tag">${catLabel}</span>
-                    <h3 class="item-name">${prod.nombre}</h3>
+                    <span class="item-category-tag">${safeCat}</span>
+                    <h3 class="item-name">${safeName}</h3>
                     <p class="item-price">$${formatCOP(prod.precio)} COP</p>
                     <div class="item-status-badge ${prod.disponible ? 'active' : 'paused'}">
                         ${prod.disponible ? '● Visible en tienda' : '⏸️ Pausado'}
                     </div>
                 </div>
                 <div class="item-actions">
-                    <button type="button" class="btn-action-icon btn-action-edit" data-id="${prod.id}" title="Editar">
+                    <button type="button" class="btn-action-icon btn-action-edit" data-id="${safeId}" title="Editar">
                         ✏️ Editar
                     </button>
-                    <button type="button" class="btn-action-icon btn-action-pause" data-id="${prod.id}" data-status="${prod.disponible}" title="${prod.disponible ? 'Pausar' : 'Activar'}">
+                    <button type="button" class="btn-action-icon btn-action-pause" data-id="${safeId}" data-status="${Boolean(prod.disponible)}" title="${prod.disponible ? 'Pausar' : 'Activar'}">
                         ${prod.disponible ? '⏸️ Pausar' : '▶️ Activar'}
                     </button>
-                    <button type="button" class="btn-action-icon btn-action-delete" data-id="${prod.id}" data-name="${prod.nombre}" title="Eliminar">
+                    <button type="button" class="btn-action-icon btn-action-delete" data-id="${safeId}" data-name="${safeName}" title="Eliminar">
                         🗑️
                     </button>
                 </div>
@@ -620,7 +652,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUploadedImages = Array.isArray(prod.imagenes) ? [...prod.imagenes] : [];
         renderPhotoPreviews();
 
-        formHeading.innerHTML = `<span>✏️</span> Editando: ${prod.nombre}`;
+        formHeading.textContent = '';
+        const editIcon = document.createElement('span');
+        editIcon.textContent = '✏️ ';
+        formHeading.appendChild(editIcon);
+        formHeading.appendChild(document.createTextNode(`Editando: ${prod.nombre || ''}`));
         btnSaveProduct.textContent = '💾 Actualizar Cambios del Producto';
         btnCancelEdit.style.display = 'inline-block';
 

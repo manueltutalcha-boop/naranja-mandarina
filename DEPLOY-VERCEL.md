@@ -6,7 +6,7 @@
 ```
 /
 ├── api/                    # Vercel Functions
-│   ├── auth-login.js      # Login (admin/jenny: Mamateamo23.)
+│   ├── auth-login.js      # Legacy (reemplazado por Supabase Auth)
 │   ├── save-catalog.js    # Guardar catálogos
 │   └── load-catalog.js    # Cargar catálogos
 ├── data/
@@ -59,10 +59,10 @@ vercel login
 vercel --prod
 ```
 
-## Credenciales
+## Credenciales de Acceso
 
-- **Usuario:** admin o jenny
-- **Contraseña:** Mamateamo23.
+- **Autenticación:** Gestionada a través de Supabase Auth (`admin.html`).
+- Las cuentas de administración se gestionan desde el panel de Supabase Dashboard (Auth > Users).
 
 ## Funcionalidades
 

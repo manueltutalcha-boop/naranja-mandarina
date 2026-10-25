@@ -39,6 +39,40 @@ function getSupabaseClient() {
 }
 
 /**
+ * Sanitiza cualquier texto para prevenir ataques XSS (Cross-Site Scripting)
+ * @param {string|any} str
+ * @returns {string}
+ */
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * Valida y sanitiza URLs de imágenes para prevenir esquemas maliciosos (ej. javascript:)
+ * @param {string} url
+ * @returns {string}
+ */
+function sanitizeImageUrl(url) {
+    if (!url || typeof url !== 'string') return 'images/catalogo/placeholder.jpg';
+    const trimmed = url.trim();
+    if (/^(https?:\/\/|\/|\.\/|images\/|data:image\/|blob:)/i.test(trimmed)) {
+        return escapeHTML(trimmed);
+    }
+    return 'images/catalogo/placeholder.jpg';
+}
+
+if (typeof window !== 'undefined') {
+    window.escapeHTML = escapeHTML;
+    window.sanitizeImageUrl = sanitizeImageUrl;
+}
+
+/**
  * Comprueba si el cliente está listo
  */
 function isSupabaseReady() {
@@ -346,6 +380,8 @@ if (typeof window !== 'undefined') {
         config: SUPABASE_CONFIG,
         getClient: getSupabaseClient,
         isReady: isSupabaseReady,
+        escapeHTML,
+        sanitizeImageUrl,
         fetchCategoryProducts,
         fetchAllAdminProducts,
         createProduct,

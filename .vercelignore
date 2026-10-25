@@ -4,3 +4,4 @@ node_modules
 .git
 .github
 supabase_setup.sql
+supabase_security_patch.sql

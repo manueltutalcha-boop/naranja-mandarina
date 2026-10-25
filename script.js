@@ -65,19 +65,25 @@ function renderCategories() {
     if (!grid) return;
     grid.innerHTML = '';
     
+    const esc = window.escapeHTML || function(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    };
+    const safeImg = window.sanitizeImageUrl || function(u) { return esc(u || 'images/catalogo/placeholder.jpg'); };
+
     categories.forEach(cat => {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.innerHTML = `
             <div class="product-image">
-                <img src="${cat.image}" alt="${cat.name}" loading="lazy" onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
+                <img src="${safeImg(cat.image)}" alt="${esc(cat.name)}" loading="lazy" onerror="this.onerror=null;this.src='images/catalogo/placeholder.jpg';">
             </div>
             <div class="product-info">
-                <h3 class="product-name">${cat.name}</h3>
-                <p class="product-desc">${cat.description}</p>
+                <h3 class="product-name">${esc(cat.name)}</h3>
+                <p class="product-desc">${esc(cat.description)}</p>
                 <div class="mt-4">
-                    <span class="product-price">${cat.price}</span>
-                    <a href="${cat.page}" class="block w-full text-center bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 font-semibold transition-colors mt-2 shadow-sm">
+                    <span class="product-price">${esc(cat.price)}</span>
+                    <a href="${esc(cat.page)}" class="block w-full text-center bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 font-semibold transition-colors mt-2 shadow-sm">
                         Ver Colección
                     </a>
                 </div>
