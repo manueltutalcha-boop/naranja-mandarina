@@ -9,6 +9,9 @@
     { "source": "/faldas", "destination": "/faldas.html" },
     { "source": "/vestidos", "destination": "/vestidos.html" },
     { "source": "/banos", "destination": "/banos.html" },
+    { "source": "/catalogo", "destination": "/catalogo.html" },
+    { "source": "/catalogo/:slug", "destination": "/catalogo.html?categoria=:slug" },
+    { "source": "/c/:slug", "destination": "/catalogo.html?categoria=:slug" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/admin", "destination": "/admin.html" }
   ],

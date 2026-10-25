@@ -79,6 +79,181 @@ function isSupabaseReady() {
     return Boolean(getSupabaseClient());
 }
 
+// Catálogos iniciales de respaldo
+const DEFAULT_CATEGORIES = [
+    {
+        id: "cbb08cda-f9f0-4a6a-a278-85155c4e63ff",
+        slug: "balacas",
+        nombre: "Diademas y Balacas",
+        descripcion: "Diseños exclusivos hechos a mano con amor",
+        icono: "🎀",
+        imagen_portada: "images/catalogo/portadas/balacas.jpg",
+        disponible: true
+    },
+    {
+        id: "36abbc4d-d735-437a-bbbc-f7ec7990b3ca",
+        slug: "accesorios",
+        nombre: "Accesorios",
+        descripcion: "Complementos únicos para resaltar tu estilo",
+        icono: "✨",
+        imagen_portada: "images/catalogo/portadas/cintillos.png",
+        disponible: true
+    },
+    {
+        id: "b786f4ba-468d-4e9c-8de9-2217aa481b64",
+        slug: "blusas",
+        nombre: "Blusas",
+        descripcion: "Prendas frescas, elegantes y con estilo",
+        icono: "👚",
+        imagen_portada: "images/catalogo/portadas/blusas.jpg",
+        disponible: true
+    },
+    {
+        id: "b4934e3c-7e29-4be6-9973-a340794ad4d4",
+        slug: "faldas",
+        nombre: "Faldas",
+        descripcion: "Diseños cómodos y versátiles para toda ocasión",
+        icono: "👗",
+        imagen_portada: "images/catalogo/portadas/falda.jpg",
+        disponible: true
+    },
+    {
+        id: "40b4bd32-da1f-469a-90d7-3ec91088bdab",
+        slug: "vestidos",
+        nombre: "Vestidos",
+        descripcion: "Elegancia y frescura en cada detalle",
+        icono: "💃",
+        imagen_portada: "images/catalogo/portadas/vestidos.jpg",
+        disponible: true
+    },
+    {
+        id: "4746373f-9707-4132-8759-968711e6d950",
+        slug: "banos",
+        nombre: "Trajes de Baño",
+        descripcion: "Diseños únicos para disfrutar el sol",
+        icono: "👙",
+        imagen_portada: "images/catalogo/portadas/traje.png",
+        disponible: true
+    }
+];
+
+/**
+ * Convierte un texto a slug URL amigable (ej. 'Ropa de Bebé' -> 'ropa-de-bebe')
+ */
+function slugify(text) {
+    if (!text) return '';
+    return text
+        .toString()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+}
+
+/**
+ * Obtiene todas las categorías desde la tabla 'categorias' de Supabase
+ */
+async function fetchCategories({ onlyAvailable = true } = {}) {
+    const client = getSupabaseClient();
+    if (!client) {
+        console.warn('⚠️ [Supabase] Cliente no disponible. Retornando categorías por defecto.');
+        return DEFAULT_CATEGORIES;
+    }
+
+    try {
+        let query = client.from('categorias').select('*').order('creado_en', { ascending: true });
+        if (onlyAvailable) {
+            query = query.eq('disponible', true);
+        }
+        const { data, error } = await query;
+        if (error) {
+            console.error('❌ [Supabase] Error consultando categorías:', error);
+            return DEFAULT_CATEGORIES;
+        }
+
+        if (!data || data.length === 0) {
+            return DEFAULT_CATEGORIES;
+        }
+
+        const portadasFallback = {
+            balacas: 'images/catalogo/portadas/balacas.jpg',
+            accesorios: 'images/catalogo/portadas/cintillos.png',
+            blusas: 'images/catalogo/portadas/blusas.jpg',
+            faldas: 'images/catalogo/portadas/falda.jpg',
+            vestidos: 'images/catalogo/portadas/vestidos.jpg',
+            banos: 'images/catalogo/portadas/traje.png'
+        };
+
+        return data.map(cat => ({
+            ...cat,
+            imagen_portada: cat.imagen_portada || portadasFallback[cat.slug] || 'images/catalogo/placeholder.jpg'
+        }));
+    } catch (err) {
+        console.error('❌ [Supabase] Excepción en fetchCategories:', err);
+        return DEFAULT_CATEGORIES;
+    }
+}
+
+/**
+ * Crea una nueva categoría o catálogo en la tabla 'categorias'
+ */
+async function createCategory(catData) {
+    const client = getSupabaseClient();
+    if (!client) throw new Error('Cliente Supabase no disponible.');
+
+    const nombre = String(catData.nombre || '').trim();
+    if (!nombre) throw new Error('El nombre de la categoría es requerido.');
+
+    const slug = slugify(catData.slug || nombre);
+    if (!slug) throw new Error('No se pudo generar un identificador para la categoría.');
+
+    const payload = {
+        slug,
+        nombre,
+        descripcion: String(catData.descripcion || '').trim(),
+        icono: String(catData.icono || '🛍️').trim(),
+        imagen_portada: String(catData.imagen_portada || '').trim(),
+        disponible: catData.disponible !== undefined ? Boolean(catData.disponible) : true
+    };
+
+    const { data, error } = await client
+        .from('categorias')
+        .insert([payload])
+        .select();
+
+    if (error) {
+        if (error.code === '23505') {
+            payload.slug = `${slug}-${Math.floor(100 + Math.random() * 900)}`;
+            const retry = await client.from('categorias').insert([payload]).select();
+            if (retry.error) throw retry.error;
+            return (retry.data && retry.data.length > 0) ? retry.data[0] : payload;
+        }
+        console.error('❌ [Supabase] Error al crear categoría:', error);
+        throw error;
+    }
+
+    return (Array.isArray(data) && data.length > 0) ? data[0] : payload;
+}
+
+/**
+ * Elimina una categoría por su ID
+ */
+async function deleteCategory(id) {
+    const client = getSupabaseClient();
+    if (!client) throw new Error('Cliente Supabase no disponible.');
+
+    const { error } = await client
+        .from('categorias')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw error;
+    return true;
+}
+
 /**
  * Obtiene los productos públicos de una categoría desde Supabase
  * @param {string} categoria - Slug de la categoría (ej: 'balacas', 'accesorios')
@@ -443,6 +618,11 @@ if (typeof window !== 'undefined') {
         isReady: isSupabaseReady,
         escapeHTML,
         sanitizeImageUrl,
+        slugify,
+        fetchCategories,
+        createCategory,
+        deleteCategory,
+        DEFAULT_CATEGORIES,
         fetchCategoryProducts,
         fetchAllAdminProducts,
         createProduct,

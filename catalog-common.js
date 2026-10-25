@@ -25,6 +25,7 @@
             .replace(/'/g, '&#39;');
     }
     const esc = escapeHTML;
+    window.escapeHTML = escapeHTML;
 
     function sanitizeImageUrl(url){
         if (!url || typeof url !== 'string') return 'images/catalogo/placeholder.jpg';
@@ -34,6 +35,7 @@
         }
         return 'images/catalogo/placeholder.jpg';
     }
+    window.sanitizeImageUrl = sanitizeImageUrl;
 
     function getBasePrice(prod){
         return Number(prod.precio || prod.originalPrice || prod.price || 0);
@@ -495,6 +497,9 @@
             }
         }
 
+        // Conectar botones de filtro automáticamente si existen en la página
+        wireFilterButtons();
+
         // Escuchar eventos de filtros avanzados
         document.addEventListener('filterChange', (ev) => {
             const d = (ev && ev.detail) || {};
@@ -527,7 +532,111 @@
         if (next) next.addEventListener('click', () => navigateImages(1));
     };
 
-    // Auto-setup mobile menu on DOMContentLoaded for all pages
-    document.addEventListener('DOMContentLoaded', setupMobileMenu);
+    function wireFilterButtons() {
+        const filterColorSelect = document.getElementById('filter-color');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        const priceMinInput = document.getElementById('price-min');
+        const priceMaxInput = document.getElementById('price-max');
+        const sortBySelect = document.getElementById('sort-by');
+
+        if (applyFiltersBtn && !applyFiltersBtn.dataset.wired) {
+            applyFiltersBtn.dataset.wired = 'true';
+            applyFiltersBtn.addEventListener('click', () => {
+                const priceMin = priceMinInput && priceMinInput.value ? Number(priceMinInput.value) : null;
+                const priceMax = priceMaxInput && priceMaxInput.value ? Number(priceMaxInput.value) : null;
+                const sortBy = sortBySelect ? sortBySelect.value : '';
+                const activeColor = filterColorSelect ? filterColorSelect.value : 'all';
+
+                document.dispatchEvent(new CustomEvent('filterChange', {
+                    detail: { color: activeColor, priceMin, priceMax, sortBy }
+                }));
+            });
+        }
+
+        if (clearFiltersBtn && !clearFiltersBtn.dataset.wired) {
+            clearFiltersBtn.dataset.wired = 'true';
+            clearFiltersBtn.addEventListener('click', () => {
+                if (priceMinInput) priceMinInput.value = '';
+                if (priceMaxInput) priceMaxInput.value = '';
+                if (sortBySelect) sortBySelect.value = '';
+                if (filterColorSelect) filterColorSelect.value = 'all';
+
+                document.dispatchEvent(new CustomEvent('filterChange', {
+                    detail: { color: 'all', priceMin: null, priceMax: null, sortBy: '' }
+                }));
+            });
+        }
+    }
+
+    /**
+     * Sincroniza dinámicamente los menús de navegación (escritorio y móvil)
+     * con todas las categorías activas creadas desde el panel de administración
+     */
+    async function syncDynamicNavigation() {
+        if (!window.NaranjaMandarinaSupabase) return;
+        try {
+            const categories = await window.NaranjaMandarinaSupabase.fetchCategories({ onlyAvailable: true });
+            if (!categories || !categories.length) return;
+
+            const desktopNav = document.querySelector('header nav.hidden.md\\:flex');
+            const mobileMenuUl = document.querySelector('#mobile-menu ul');
+            const adminDesktopLink = document.getElementById('admin-link');
+            const adminMobileItem = mobileMenuUl ? mobileMenuUl.querySelector('li.border-t') : null;
+
+            const defaultSlugs = ['balacas', 'accesorios', 'blusas', 'faldas', 'vestidos', 'banos'];
+
+            categories.forEach(cat => {
+                const isBase = defaultSlugs.includes(cat.slug);
+                const targetUrl = isBase ? `${cat.slug}.html` : `catalogo.html?categoria=${encodeURIComponent(cat.slug)}`;
+
+                // 1. Navegación Escritorio
+                if (desktopNav) {
+                    const existingDesktop = desktopNav.querySelector(`a[href*="${cat.slug}"]`);
+                    if (!existingDesktop && !isBase) {
+                        const newLink = document.createElement('a');
+                        newLink.href = targetUrl;
+                        newLink.className = 'text-white hover:text-orange-200 font-medium transition-colors dynamic-nav-item';
+                        newLink.style.textDecoration = 'none';
+                        newLink.textContent = cat.nombre;
+                        if (adminDesktopLink) {
+                            desktopNav.insertBefore(newLink, adminDesktopLink);
+                        } else {
+                            desktopNav.appendChild(newLink);
+                        }
+                    }
+                }
+
+                // 2. Menú Hamburguesa Móvil
+                if (mobileMenuUl) {
+                    const existingMobile = mobileMenuUl.querySelector(`a[href*="${cat.slug}"]`);
+                    if (!existingMobile && !isBase) {
+                        const li = document.createElement('li');
+                        li.className = 'dynamic-menu-item';
+                        const a = document.createElement('a');
+                        a.href = targetUrl;
+                        a.textContent = `${cat.icono ? cat.icono + ' ' : '🛍️ '}${cat.nombre}`;
+                        li.appendChild(a);
+
+                        if (adminMobileItem) {
+                            mobileMenuUl.insertBefore(li, adminMobileItem);
+                        } else {
+                            mobileMenuUl.appendChild(li);
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.warn('Error sincronizando navegación dinámica:', err);
+        }
+    }
+
+    window.syncDynamicNavigation = syncDynamicNavigation;
+
+    // Auto-setup de navegación y menú móvil en todas las páginas
+    document.addEventListener('DOMContentLoaded', () => {
+        setupMobileMenu();
+        syncDynamicNavigation();
+    });
 
 })(window);
